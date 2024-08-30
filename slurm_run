@@ -1,0 +1,14 @@
+#!/bin/sh
+set -eu
+OUTPUT=$(date --iso-8601=seconds)
+
+module load toolchain/foss/2022b
+module load lib/libaio/0.3.113-GCCcore-12.2.0
+module load lang/Python/3.10.8-GCCcore-12.2.0-bare
+export VENV_PATH=/scratch/hpc-prf-lola/nikit/repos/LOLA-Megatron-DeepSpeed/lola_ws/fine-tune/instruction-ft/venv-lola-ft-python
+source $VENV_PATH/bin/activate
+
+<languages.txt \
+    xargs -I{} \
+    sbatch -p normal -t 04:00:00 -N 1 -n 1 --mem=2G -J "Downloading huggingface dataset $1 {} $2 $3" --cpus-per-task=2 --output "$(date --iso-8601=seconds)/{}_$2_%j.log" \
+    ./huggingface-slice-download --path "$1" --name "{}" --split "$2" --rows-limit "$3" --save-path "$4/{}"

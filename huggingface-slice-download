@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+import argparse
+import itertools
+import logging
+
+import datasets
+
+logging.basicConfig(level=logging.INFO)
+
+parser = argparse.ArgumentParser()
+# https://huggingface.co/docs/datasets/main/en/package_reference/loading_methods
+parser.add_argument('--path', required=True, type=str)
+parser.add_argument('--name', type=str)
+parser.add_argument('--split', type=str)
+parser.add_argument('--token', type=str)
+parser.add_argument('--rows-limit', type=int, default=None)
+parser.add_argument('--save-path', required=True, type=str)
+args = parser.parse_args()
+logging.info('Args: %s', args)
+
+dataset = datasets.load_dataset(args.path, args.name, split=args.split, token=args.token, streaming=True)
+it = itertools.islice(dataset, args.rows_limit)
+new_dataset = datasets.Dataset.from_list(list(it))
+new_dataset.save_to_disk(args.save_path)
+logging.info('Done')
